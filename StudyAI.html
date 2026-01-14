@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyAI | KTU 2024 Adaptive Planner</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f4f7fe; --card: #ffffff; --text: #1b2559;
+            --primary: #4318ff; --secondary: #a3aed0; --accent: #00d2ff;
+            --danger: #ee5d50;
+        }
+        [data-theme="dark"] {
+            --bg: #0b1437; --card: #111c44; --text: #ffffff;
+            --primary: #7551ff;
+        }
+
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            transition: background 0.4s ease;
+            min-height: 100vh; display: flex; align-items: center;
+        }
+
+        /* --- ADVANCED ANIMATIONS --- */
+        .glass-card {
+            background: var(--card); border-radius: 30px;
+            box-shadow: 0px 40px 80px rgba(0, 0, 0, 0.05);
+            max-width: 800px; margin: auto; width: 95%;
+            padding: 40px; border: 1px solid rgba(128, 128, 128, 0.1);
+            animation: slideIn 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .btn-smart {
+            border-radius: 16px; font-weight: 700; transition: all 0.2s ease;
+            text-transform: uppercase; letter-spacing: 1px; border: none;
+            padding: 16px 32px; cursor: pointer; position: relative; overflow: hidden;
+        }
+
+        /* Button Ripple-like hover effect */
+        .btn-smart:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(67, 24, 255, 0.3);
+        }
+
+        .btn-smart:active { transform: scale(0.92); }
+
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-danger { background: var(--danger); color: white; }
+
+        input, select {
+            width: 100%; padding: 15px; margin: 10px 0;
+            border-radius: 15px; border: 2px solid #e0e5f2;
+            background: transparent; color: inherit; outline: none;
+            transition: border 0.3s;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        /* --- TABLE STYLING --- */
+        .ktu-table { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
+        .ktu-table tr { 
+            background: rgba(128, 128, 128, 0.03); 
+            animation: fadeInRow 0.5s ease forwards; opacity: 0;
+        }
+        @keyframes fadeInRow { to { opacity: 1; transform: translateX(0); } from { transform: translateX(-20px); } }
+
+        .ktu-table td { padding: 20px; border-radius: 15px; }
+        .break-row { background: rgba(255, 184, 0, 0.1) !important; color: #ffb800; font-weight: bold; }
+
+        .mod-chip {
+            display: inline-block; background: rgba(128, 128, 128, 0.08);
+            padding: 8px 16px; border-radius: 12px; margin: 5px;
+            font-size: 0.9em; cursor: pointer; border: 1px solid transparent;
+        }
+        .mod-chip:hover { border-color: var(--primary); background: rgba(67, 24, 255, 0.05); }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body data-theme="light">
+
+<div class="glass-card">
+    
+    <div class="w3-center w3-margin-bottom">
+        <h1 style="font-weight: 800; letter-spacing: -1px;">Study<span style="color:var(--primary)">AI</span></h1>
+        <p id="tagline" class="w3-opacity">KTU 2024 Adaptive Study Orchestrator</p>
+    </div>
+
+    <div id="loginView">
+        <label>Temporary Username</label>
+        <input id="username" type="text" placeholder="Enter your name...">
+        
+        <label>B.Tech Branch (2024 Scheme)</label>
+        <select id="branch">
+            <option value="" disabled selected>Select Department</option>
+            <option value="CSE">Computer Science (CSE)</option>
+            <option value="ECE">Electronics (ECE)</option>
+            <option value="EEE">Electrical (EEE)</option>
+            <option value="ME">Mechanical (ME)</option>
+        </select>
+        
+        <button class="btn-smart btn-primary w3-margin-top" onclick="handleAuth()">Enter Dashboard</button>
+    </div>
+
+    <div id="appView" class="hidden">
+        <div class="w3-row w3-margin-bottom">
+            <div class="w3-half"><h5 id="welcomeUser" style="margin:0; font-weight:700"></h5></div>
+            <div class="w3-half w3-right-align">
+                <button class="w3-button w3-round-xlarge w3-light-grey" onclick="toggleTheme()">🌗</button>
+                <button class="w3-button w3-round-xlarge w3-border" onclick="showView('settingsView')">⚙️</button>
+                <button class="btn-smart btn-danger" style="padding:8px 16px" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="w3-row-padding" style="margin:0 -16px">
+            <div class="w3-half">
+                <label>No. of Subjects</label>
+                <select id="subCount" onchange="renderSubjectInputs()">
+                    <option value="0">Select</option>
+                    <option value="1">1 Subject</option><option value="2">2 Subjects</option>
+                    <option value="3">3 Subjects</option>
+                </select>
+            </div>
+            <div class="w3-half">
+                <label>Total Study Hours</label>
+                <input id="totalHours" type="number" placeholder="e.g. 5">
+            </div>
+        </div>
+
+        <div id="subjectList" class="w3-margin-top"></div>
+
+        <button id="genBtn" class="btn-smart btn-primary w3-margin-top" onclick="generate()">⚡ Generate Timetable</button>
+
+        <div id="timetableOutput" class="w3-margin-top"></div>
+    </div>
+
+    <div id="settingsView" class="hidden">
+        <h3>Settings</h3>
+        <label>Break Logic</label>
+        <select>
+            <option>Frequent (Every 25m)</option>
+            <option selected>Hardness-Scaled (AI Recommended)</option>
+        </select>
+        <button class="btn-smart btn-primary w3-margin-top" onclick="showView('appView')">Apply & Back</button>
+    </div>
+
+</div>
+
+<script>
+/* ================= KTU 2024 DATA ================= */
+const SYLLABUS = {
+    CSE: {
+        "Data Structures": [{n:"Linear Data Structures", h:3}, {n:"Non-Linear (Trees)", h:5}, {n:"Graph Algos", h:5}],
+        "Discrete Math": [{n:"Set Theory", h:2}, {n:"Logic", h:4}, {n:"Recurrence", h:5}]
+    },
+    ECE: {
+        "Network Theory": [{n:"Mesh Analysis", h:4}, {n:"Network Theorems", h:5}],
+        "Solid State Devices": [{n:"Diode Circuits", h:3}, {n:"Transistor Biasing", h:4}]
+    },
+    EEE: {
+        "Circuit Theory": [{n:"AC Circuits", h:4}, {n:"Resonance", h:5}],
+        "DC Machines": [{n:"DC Motors", h:4}, {n:"Generators", h:3}]
+    },
+    ME: {
+        "Thermodynamics": [{n:"First Law", h:3}, {n:"Pure Substances", h:5}],
+        "Mechanics": [{n:"Statics", h:4}, {n:"Kinematics", h:5}]
+    }
+};
+
+/* ================= NAVIGATION & AUTH ================= */
+function showView(id) {
+    ['loginView', 'appView', 'settingsView'].forEach(v => document.getElementById(v).classList.add('hidden'));
+    const target = document.getElementById(id);
+    target.classList.remove('hidden');
+}
+
+function handleAuth() {
+    const user = document.getElementById('username').value;
+    const branch = document.getElementById('branch').value;
+    if(!user || !branch) return alert("Please fill all details!");
+    
+    sessionStorage.setItem('ktu_user', user);
+    sessionStorage.setItem('ktu_branch', branch);
+    initApp();
+}
+
+function initApp() {
+    const user = sessionStorage.getItem('ktu_user');
+    const branch = sessionStorage.getItem('ktu_branch');
+    document.getElementById('welcomeUser').innerHTML = `Hi, ${user} <span class="w3-tag w3-round w3-small w3-blue">${branch}</span>`;
+    showView('appView');
+}
+
+function logout() {
+    sessionStorage.clear();
+    // Reset inputs
+    document.getElementById('username').value = "";
+    document.getElementById('branch').selectedIndex = 0;
+    document.getElementById('timetableOutput').innerHTML = "";
+    showView('loginView');
+}
+
+function toggleTheme() {
+    document.body.dataset.theme = document.body.dataset.theme === "light" ? "dark" : "light";
+}
+
+/* ================= APP LOGIC ================= */
+function renderSubjectInputs() {
+    const container = document.getElementById('subjectList');
+    container.innerHTML = "";
+    const count = +document.getElementById('subCount').value;
+    const branch = sessionStorage.getItem('ktu_branch');
+    const subjects = Object.keys(SYLLABUS[branch]);
+
+    for(let i=0; i<count; i++) {
+        const div = document.createElement('div');
+        div.className = "w3-animate-opacity w3-margin-bottom";
+        div.innerHTML = `
+            <select onchange="renderModules(this, ${i})">
+                <option>Select Subject</option>
+                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+            </select>
+            <div id="mod-box-${i}"></div>
+        `;
+        container.appendChild(div);
+    }
+}
+
+function renderModules(sel, idx) {
+    const branch = sessionStorage.getItem('ktu_branch');
+    const mods = SYLLABUS[branch][sel.value];
+    const target = document.getElementById(`mod-box-${idx}`);
+    target.innerHTML = mods.map(m => `
+        <label class="mod-chip">
+            <input type="checkbox" class="mod-cb" data-sub="${sel.value}" data-name="${m.n}" data-hard="${m.h}"> ${m.n}
+        </label>
+    `).join('');
+}
+
+function generate() {
+    const selected = document.querySelectorAll('.mod-cb:checked');
+    if(selected.length === 0) return alert("Select at least one module!");
+
+    // Irregular start time
+    let totalMins = (8 + Math.floor(Math.random() * 2)) * 60 + Math.floor(Math.random() * 59);
+
+    let html = `<table class="ktu-table">`;
+    
+    selected.forEach((m, i) => {
+        const hardness = parseInt(m.dataset.hard);
+        // Timing logic: Base 40m + Difficulty weight + Randomness
+        const duration = 40 + (hardness * 12) + Math.floor(Math.random() * 10);
+        
+        const startTime = formatTime(totalMins);
+        totalMins += duration;
+        const endTime = formatTime(totalMins);
+
+        html += `<tr style="animation-delay: ${i*0.1}s">
+            <td><b style="color:var(--primary)">${startTime} - ${endTime}</b></td>
+            <td><b>${m.dataset.sub}</b><br><small class="w3-opacity">${m.dataset.name}</small></td>
+            <td>Level ${hardness}</td>
+        </tr>`;
+
+        // Break logic
+        if(i < selected.length - 1) {
+            const b = 10 + Math.floor(Math.random() * 10);
+            html += `<tr class="break-row"><td>${formatTime(totalMins)}</td><td colspan="2">☕ Break (${b}m)</td></tr>`;
+            totalMins += b;
+        }
+    });
+
+    html += `</table>`;
+    document.getElementById('timetableOutput').innerHTML = html;
+}
+
+function formatTime(t) {
+    let h = Math.floor(t / 60) % 24;
+    let m = t % 60;
+    return `${h}:${m.toString().padStart(2, '0')}`;
+}
+
+// Initial Check
+window.onload = () => {
+    if(sessionStorage.getItem('ktu_user')) initApp();
+    else showView('loginView');
+};
+</script>
+
+</body>
+</html>
